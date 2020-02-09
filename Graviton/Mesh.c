@@ -41,7 +41,7 @@ void SetupMesh(Mesh* m) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	// load and generate the texture
 	int nrChannels;
-	unsigned char* data = stbi_load("tree.png", &w, &h, &nrChannels, 0);
+	unsigned char* data = stbi_load("test.png", &w, &h, &nrChannels, 0);
 	if (data)
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);

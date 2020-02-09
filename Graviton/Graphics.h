@@ -3,7 +3,7 @@
 #define GRAPHICS_H
 
 #include "cglm/cglm.h"
-#include "GL/glew.h"
+#include "glad/glad.h"
 
 // initialize graphics. you shouldn't need to call this yourself.
 void InitializeGraphics(int w, int h);

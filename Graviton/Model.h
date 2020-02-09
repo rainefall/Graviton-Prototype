@@ -3,7 +3,7 @@
 #define MODEL_H
 
 #include "cglm/cglm.h"
-#include "GL/glew.h"
+#include "glad/glad.h"
 #include "Graphics.h"
 #include "Types.h"
 

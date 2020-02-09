@@ -23,6 +23,8 @@ PhysicsWorld CreatePhysicsWorld() {
 
 	p->collisionShapes = new btAlignedObjectArray<btCollisionShape*>();
 
+	p->dynamicsWorld->setGravity(btVector3(0.0f, -9.8f, 0.0f));
+
 	return (void*)p;
 }
 
@@ -73,29 +75,39 @@ void Physics_AddObjectToWorld(void* w, void* o)
 	((Bullet_PhysicsWorld*)w)->dynamicsWorld->addRigidBody(((Bullet_PhysicsObject*)o)->rigidBody);
 }
 
+void Physics_SetGravity(void* w, Vector3 g)
+{
+	((Bullet_PhysicsWorld*)w)->dynamicsWorld->setGravity(btVector3(g.x, g.y, g.z));
+}
+
 PhysicsObject CreatePhysicsObject(int kinematic) {
 	Bullet_PhysicsObject* p = (Bullet_PhysicsObject*)malloc(sizeof(Bullet_PhysicsObject));
 	p->ms = new btDefaultMotionState();
 	p->cs = new btSphereShape(1.0f);
 	p->rigidBody = new btRigidBody(1.0f * (1 - kinematic), p->ms, p->cs);
 	p->rigidBody->setActivationState(DISABLE_DEACTIVATION);
-	// temporary while i write the functions to modify physics object positions etc
-	if (!kinematic) {
-		btTransform t = btTransform();
-		t.setOrigin(btVector3(0.0f, 5.0f, 0.0f));
-		p->rigidBody->setWorldTransform(t);
-	}
 
 	return (void*)p;
 }
 
-void Physics_SetCollider(void* p, void* col) {
+void PhysicsObject_SetCollider(void* p, void* col) {
 	((Bullet_PhysicsObject*)p)->rigidBody->setCollisionShape((btCollisionShape*)col);
 }
 
-void Physics_GetOpenGlMatrix(void* p, float* f)
+void PhysicsObject_GetOpenGlMatrix(void* p, float* f)
 {
 	((Bullet_PhysicsObject*)p)->rigidBody->getCenterOfMassTransform().getOpenGLMatrix(f);
+}
+
+void PhysicsObject_Translate(void* p, Vector3 v)
+{
+	((Bullet_PhysicsObject*)p)->rigidBody->translate(btVector3(v.x, v.y, v.z));
+}
+
+Vector3 PhysicsObject_GetPosition(void* p)
+{
+	btVector3 vec = ((Bullet_PhysicsObject*)p)->rigidBody->getCenterOfMassTransform().getOrigin();
+	return { vec.getX(), vec.getY(), vec.getZ() };
 }
 
 void DestroyPhysicsObject(void* p) {
