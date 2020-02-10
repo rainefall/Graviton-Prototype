@@ -118,6 +118,10 @@ void DestroyPhysicsObject(void* p) {
 }
 
 void* Physics_Trimesh(Model* model) {
+	if (model == NULL) {
+		printf("ERROR::PHYSICS - tried to generate collision mesh from null model");
+		return (void*)(new btSphereShape(1.0f));
+	}
 	btTriangleMesh* trimesh = new btTriangleMesh();
 	for (unsigned int i = 0; i < model->NumMeshes; i++) {
 		for (unsigned int j = 0; j < model->Meshes[i]->NumVertices; j++) {

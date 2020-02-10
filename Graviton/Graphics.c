@@ -34,7 +34,7 @@ const char* fragmentShader3dSource = "#version 330 core\n"
 "{\n"""
 "	vec3 norm = normalize(Normal);\n"
 "	vec3 lightDir = normalize(lightPos - FragPos);\n"
-"	float diffuse = max(dot(norm, lightDir), 0.1);\n"
+"	float diffuse = max(dot(norm, lightDir), 0.5);\n"
 "	FragColor = diffuse * texture(tex, TexCoord);\n"
 "}\0";
 

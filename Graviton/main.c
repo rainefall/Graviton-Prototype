@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
 
 	float mat[16];
 
-	Model* mdl = LoadModel("testroom.gmdl");
+	Model* mdl = LoadModel("test.gmdl");
 	SetupModel(mdl);
 
 	// physics test
@@ -70,14 +70,13 @@ int main(int argc, char* argv[])
 	Physics_AddObjectToWorld(MainPhysicsWorld, rm);
 	Physics_AddObjectToWorld(MainPhysicsWorld, pl);
 
-	// view direction
-	Vector3 front = { 0.0f, 0.0f, -1.0f };
-
 	// view stuff
 	float lastX = 400, lastY = 300;
 	float yaw = 0.0f, pitch = 0.0f;
 
-	vec3 worldUp = { 0.0f, 1.0f, 0.0f };
+	vec3 worldUp = { 1.0f, 0.0f, 0.0f };
+
+	Physics_SetGravity(MainPhysicsWorld, (Vector3) { -9.8f, 0.0f, 0.0f });
 
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -101,38 +100,58 @@ int main(int argc, char* argv[])
 		yaw += xoffset;
 		pitch += yoffset;
 
-		if (pitch > 180.0f)
-			pitch = 180.0f;
-		if (pitch < -180.0f)
-			pitch = -180.0f;
+		if (pitch > 90.0f)
+			pitch = 90.0f;
+		if (pitch < -90.0f)
+			pitch = -90.0f;
 
-		front.x =  sin(glm_rad(yaw));
-		front.y =  sin(glm_rad(pitch));
-		front.z = -cos(glm_rad(yaw));
-
-		vec3 f = { front.x, front.y, front.z };
-		glm_normalize(f);
-
-		vec3 glmpos = { pos.x, pos.y, pos.z };
-
-		vec3 cameraFront;
-		glm_vec3_add(glmpos, f, cameraFront);
-
-		glm_lookat(glmpos, cameraFront, worldUp, ViewMatrix);
+		glm_mat4_identity(ViewMatrix);
+		// rotate view to default for up vector
+		glm_rotate_x(ViewMatrix, glm_rad(90.0f * worldUp[2]), ViewMatrix);
+		glm_rotate_z(ViewMatrix, glm_rad(90.0f * worldUp[0]), ViewMatrix);
+		// rotate view differently depending on view vector
+		// x-up
+		glm_rotate_y(ViewMatrix, glm_rad(pitch) * worldUp[0], ViewMatrix);
+		glm_rotate_x(ViewMatrix, glm_rad(yaw) * worldUp[0], ViewMatrix);
+		// y-up
+		glm_rotate_x(ViewMatrix, glm_rad(-pitch) * worldUp[1], ViewMatrix);
+		glm_rotate_y(ViewMatrix, glm_rad(yaw) * worldUp[1], ViewMatrix);
+		// z-up
+		glm_rotate_x(ViewMatrix, glm_rad(-pitch) * worldUp[2], ViewMatrix);
+		glm_rotate_z(ViewMatrix, glm_rad(yaw) * worldUp[2], ViewMatrix);
+		// move camera
+		glm_translate(ViewMatrix, (vec3) { -pos.x, -pos.y, -pos.z });
 
 		// move player
-		if ((glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS))
-			PhysicsObject_Translate(pl, (Vector3) { f[0] * -0.1f, 0.0f, f[2] * -0.1f });
-		if ((glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS))
-			PhysicsObject_Translate(pl, (Vector3) { f[0] * 0.1f, 0.0f, f[2] * 0.1f });
-		if ((glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS))
-			PhysicsObject_Translate(pl, (Vector3) { -0.1f, 0.0f, 0.0f });
-		if ((glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS))
-			PhysicsObject_Translate(pl, (Vector3) { 0.1f, 0.0f, 0.0f });
+		if ((glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)) {
+			// x-up
+			PhysicsObject_Translate(pl, (Vector3) { 0.0f, sin(glm_rad(yaw)) * 0.1f * worldUp[0], cos(glm_rad(yaw)) * 0.1f * worldUp[0] });
+			// y-up
+			PhysicsObject_Translate(pl, (Vector3) { sin(glm_rad(yaw)) * -0.1f * worldUp[1], 0.0f, cos(glm_rad(yaw)) * 0.1f * worldUp[1] });
+			// z-up
+			PhysicsObject_Translate(pl, (Vector3) { sin(glm_rad(yaw)) * -0.1f * worldUp[2], cos(glm_rad(yaw)) * -0.1f * worldUp[2], 0.0f });
+		}
+		if ((glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)) {
+			// x-up
+			PhysicsObject_Translate(pl, (Vector3) { 0.0f, sin(glm_rad(yaw)) * -0.1f * worldUp[0], cos(glm_rad(yaw)) * -0.1f * worldUp[0] });
+			// y-up
+			PhysicsObject_Translate(pl, (Vector3) { sin(glm_rad(yaw)) * 0.1f * worldUp[1], 0.0f, cos(glm_rad(yaw)) * -0.1f * worldUp[1] });
+			// z-up
+			PhysicsObject_Translate(pl, (Vector3) { sin(glm_rad(yaw)) * 0.1f * worldUp[2], cos(glm_rad(yaw)) * 0.1f * worldUp[2], 0.0f });
+		}
+		if ((glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)) {
+			// y-up
+			PhysicsObject_Translate(pl, (Vector3) { -cos(glm_rad(yaw)) * 0.1f * cos(glm_rad(worldUp[1])), 0.0f, -sin(glm_rad(yaw)) * 0.1f * cos(glm_rad(worldUp[1])) });
+		}
+		if ((glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)) {
+			// y-up
+			PhysicsObject_Translate(pl, (Vector3) { cos(glm_rad(yaw)) * 0.1f * cos(glm_rad(worldUp[1])), 0.0f, sin(glm_rad(yaw)) * 0.1f * cos(glm_rad(worldUp[1])) });
+		}
 
 		if ((glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)) {
-			glm_vec3_copy(f, worldUp);
-			Physics_SetGravity(MainPhysicsWorld, front);
+			glm_vec3_copy(GLM_YUP, worldUp);
+
+			Physics_SetGravity(MainPhysicsWorld, (Vector3) { 0.0f, -9.8f, 0.0f});
 		}
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
