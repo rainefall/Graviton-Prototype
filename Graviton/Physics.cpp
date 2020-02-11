@@ -1,5 +1,13 @@
 #include "Physics.hpp"
 
+// helper functions
+btVector3 Vector3ToBullet(Vector3 vec) {
+	return btVector3(vec.x, vec.y, vec.z);
+}
+Vector3 btVector3ToNative(btVector3 vec) {
+	return { vec.getX(), vec.getY(), vec.getZ() };
+}
+
 void InitPhysics() {
 	// setup bullet
 	MainPhysicsWorld = CreatePhysicsWorld();
@@ -77,7 +85,7 @@ void Physics_AddObjectToWorld(void* w, void* o)
 
 void Physics_SetGravity(void* w, Vector3 g)
 {
-	((Bullet_PhysicsWorld*)w)->dynamicsWorld->setGravity(btVector3(g.x, g.y, g.z));
+	((Bullet_PhysicsWorld*)w)->dynamicsWorld->setGravity(btVector3(g.x, g.y, g.z).normalize());
 }
 
 PhysicsObject CreatePhysicsObject(int kinematic) {
@@ -136,4 +144,31 @@ void* Physics_Trimesh(Model* model) {
 	}
 
 	return (void*)(new btBvhTriangleMeshShape(trimesh, true));
+}
+
+void* Physics_Raycast(Vector3 origin, Vector3 direction, float size, void* world, Vector3* normout)
+{
+	btCollisionWorld::ClosestRayResultCallback r(btVector3(origin.x, origin.y, origin.z), btVector3(origin.x + direction.x * size, origin.y + direction.y * size, origin.z + direction.z * size));
+	((Bullet_PhysicsWorld*)world)->dynamicsWorld->rayTest(btVector3(origin.x, origin.y, origin.z), btVector3(origin.x + direction.x * size, origin.y + direction.y * size, origin.z + direction.z * size), r);
+	if (r.hasHit()) {
+		*normout = btVector3ToNative(r.m_hitNormalWorld);
+	}
+	return (void*)&r;
+}
+
+int Physics_Raycast_Hit(void* ray)
+{
+	if (((btCollisionWorld::ClosestRayResultCallback*)ray)->hasHit())
+		return 1;
+	return 0;
+}
+
+Vector3 Physics_Raycast_Normal(void* ray)
+{
+	return Vector3(btVector3ToNative(((btCollisionWorld::ClosestRayResultCallback*)ray)->m_hitNormalWorld));
+}
+
+Vector3 Physics_Raycast_Position(void* ray)
+{
+	return Vector3(btVector3ToNative(((btCollisionWorld::ClosestRayResultCallback*)ray)->m_hitPointWorld));
 }

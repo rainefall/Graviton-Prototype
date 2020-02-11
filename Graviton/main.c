@@ -74,9 +74,9 @@ int main(int argc, char* argv[])
 	float lastX = 400, lastY = 300;
 	float yaw = 0.0f, pitch = 0.0f;
 
-	vec3 worldUp = { 1.0f, 0.0f, 0.0f };
+	vec3 worldUp = { 0.0f, 1.0f, 0.0f };
 
-	Physics_SetGravity(MainPhysicsWorld, (Vector3) { -9.8f, 0.0f, 0.0f });
+	Physics_SetGravity(MainPhysicsWorld, (Vector3) { 0.0f, -9.8f, 0.0f });
 
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -141,17 +141,25 @@ int main(int argc, char* argv[])
 		}
 		if ((glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)) {
 			// y-up
-			PhysicsObject_Translate(pl, (Vector3) { -cos(glm_rad(yaw)) * 0.1f * cos(glm_rad(worldUp[1])), 0.0f, -sin(glm_rad(yaw)) * 0.1f * cos(glm_rad(worldUp[1])) });
+			PhysicsObject_Translate(pl, (Vector3) { -cos(glm_rad(yaw)) * 0.1f * worldUp[1], 0.0f, -sin(glm_rad(yaw)) * 0.1f * worldUp[1] });
 		}
 		if ((glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)) {
 			// y-up
-			PhysicsObject_Translate(pl, (Vector3) { cos(glm_rad(yaw)) * 0.1f * cos(glm_rad(worldUp[1])), 0.0f, sin(glm_rad(yaw)) * 0.1f * cos(glm_rad(worldUp[1])) });
+			PhysicsObject_Translate(pl, (Vector3) { cos(glm_rad(yaw)) * 0.1f * worldUp[1], 0.0f, sin(glm_rad(yaw)) * 0.1f * worldUp[1] });
 		}
 
 		if ((glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)) {
-			glm_vec3_copy(GLM_YUP, worldUp);
-
-			Physics_SetGravity(MainPhysicsWorld, (Vector3) { 0.0f, -9.8f, 0.0f});
+			Vector3 front;
+			front.x = cos(glm_rad(pitch)) * sin(glm_rad(yaw))   *  worldUp[1];
+			front.y = sin(glm_rad(pitch)) * sin(glm_rad(pitch)) *  worldUp[1];
+			front.z = cos(glm_rad(pitch)) * cos(glm_rad(yaw))   * -worldUp[1];
+			Vector3 norm;
+			PhysicsRaycastHit ray = Physics_Raycast(pos, front, 10.0f, MainPhysicsWorld, &norm);
+			if (Physics_Raycast_Hit(ray)) {
+				glm_vec3_copy((vec3) {norm.x, norm.y, norm.z}, worldUp);
+				glm_normalize(worldUp); // cause bullet is fucking stupid
+				Physics_SetGravity(MainPhysicsWorld, (Vector3) { norm.x*-9.8f, norm.y*-9.8f, norm.z*-9.8f });
+			}
 		}
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

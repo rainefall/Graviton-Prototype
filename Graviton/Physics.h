@@ -9,6 +9,7 @@ typedef struct Vector3 Vector3;
 
 typedef void* PhysicsWorld;
 typedef void* PhysicsObject;
+typedef void* PhysicsRaycastHit;
 
 typedef struct Model Model;
 
@@ -50,7 +51,17 @@ void PhysicsObject_Translate(void* p, Vector3 v);
 // Get position vector
 Vector3 PhysicsObject_GetPosition(void* p);
 
-// Misc
+// Generate collision mesh
 void* Physics_Trimesh(Model* model);
+
+// Raycasting
+// do a raycast, returns pointer to raycast information
+void* Physics_Raycast(Vector3 origin, Vector3 direction, float size, void* world, Vector3* normout);
+// check if raycast has hit something
+int Physics_Raycast_Hit(void* ray);
+// get position of raycast hit
+Vector3 Physics_Raycast_Position(void* ray);
+// get normal of raycast hit
+Vector3 Physics_Raycast_Normal(void* ray);
 
 #endif
