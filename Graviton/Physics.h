@@ -56,7 +56,7 @@ void* Physics_Trimesh(Model* model);
 
 // Raycasting
 // do a raycast, returns pointer to raycast information
-void* Physics_Raycast(Vector3 origin, Vector3 direction, float size, void* world, Vector3* normout);
+void* Physics_Raycast(Vector3 origin, Vector3 direction, float size, void* world, Vector3* normout, bool* hit);
 // check if raycast has hit something
 int Physics_Raycast_Hit(void* ray);
 // get position of raycast hit

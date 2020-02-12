@@ -57,8 +57,6 @@ int main(int argc, char* argv[])
 	InitializeInput(window);
 	InitPhysics();
 
-	float mat[16];
-
 	Model* mdl = LoadModel("test.gmdl");
 	SetupModel(mdl);
 
@@ -73,8 +71,13 @@ int main(int argc, char* argv[])
 	// view stuff
 	float lastX = 400, lastY = 300;
 	float yaw = 0.0f, pitch = 0.0f;
+	Vector3 front;
+	Vector3 norm;
 
 	vec3 worldUp = { 0.0f, 1.0f, 0.0f };
+
+	bool rayhit = false;
+	bool rayed = false;
 
 	Physics_SetGravity(MainPhysicsWorld, (Vector3) { 0.0f, -9.8f, 0.0f });
 
@@ -107,7 +110,7 @@ int main(int argc, char* argv[])
 
 		glm_mat4_identity(ViewMatrix);
 		// rotate view to default for up vector
-		glm_rotate_x(ViewMatrix, glm_rad(90.0f * worldUp[2]), ViewMatrix);
+		glm_rotate_x(ViewMatrix, glm_rad(90.0f * -worldUp[2]), ViewMatrix);
 		glm_rotate_z(ViewMatrix, glm_rad(90.0f * worldUp[0]), ViewMatrix);
 		// rotate view differently depending on view vector
 		// x-up
@@ -142,24 +145,30 @@ int main(int argc, char* argv[])
 		if ((glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)) {
 			// y-up
 			PhysicsObject_Translate(pl, (Vector3) { -cos(glm_rad(yaw)) * 0.1f * worldUp[1], 0.0f, -sin(glm_rad(yaw)) * 0.1f * worldUp[1] });
+			// z-up
+			PhysicsObject_Translate(pl, (Vector3) { -cos(glm_rad(yaw)) * 0.1f * worldUp[2], sin(glm_rad(yaw)) * 0.1f * worldUp[2], 0.0f });
 		}
 		if ((glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)) {
 			// y-up
 			PhysicsObject_Translate(pl, (Vector3) { cos(glm_rad(yaw)) * 0.1f * worldUp[1], 0.0f, sin(glm_rad(yaw)) * 0.1f * worldUp[1] });
+			// z-up
+			PhysicsObject_Translate(pl, (Vector3) { cos(glm_rad(yaw)) * 0.1f * worldUp[2], -sin(glm_rad(yaw)) * 0.1f * worldUp[2], 0.0f });
 		}
 
-		if ((glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)) {
-			Vector3 front;
-			front.x = cos(glm_rad(pitch)) * sin(glm_rad(yaw))   *  worldUp[1];
-			front.y = sin(glm_rad(pitch)) * sin(glm_rad(pitch)) *  worldUp[1];
-			front.z = cos(glm_rad(pitch)) * cos(glm_rad(yaw))   * -worldUp[1];
-			Vector3 norm;
-			PhysicsRaycastHit ray = Physics_Raycast(pos, front, 10.0f, MainPhysicsWorld, &norm);
-			if (Physics_Raycast_Hit(ray)) {
+		if ((glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) && !rayed) {
+			front.x = cos(glm_rad(pitch)) * sin(glm_rad(yaw)) *  worldUp[1] + sin(glm_rad(yaw)) * worldUp[2];
+			front.y = sin(glm_rad(pitch)) *                      worldUp[1] + cos(glm_rad(yaw)) * worldUp[2];
+			front.z = cos(glm_rad(pitch)) * cos(glm_rad(yaw)) * -worldUp[1];
+			Physics_Raycast(pos, front, 100.0f, MainPhysicsWorld, &norm, &rayhit);
+			if (rayhit) {
 				glm_vec3_copy((vec3) {norm.x, norm.y, norm.z}, worldUp);
-				glm_normalize(worldUp); // cause bullet is fucking stupid
+				//glm_normalize(worldUp); // cause bullet is fucking stupid
 				Physics_SetGravity(MainPhysicsWorld, (Vector3) { norm.x*-9.8f, norm.y*-9.8f, norm.z*-9.8f });
 			}
+			rayed = true;
+		}
+		if (rayed) {
+			rayed = false;
 		}
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
