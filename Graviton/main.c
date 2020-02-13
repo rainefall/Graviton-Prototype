@@ -2,38 +2,45 @@
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
 
+#include "lua/lua.h"
+
 #include "Graphics.h"
 #include "Input.h"
 #include "Physics.h"
 #include "Model.h"
 
+// remove this at some point lol
+#define please ;
+#define thank return
+#define you 0;
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-	glViewport(0, 0, width, height);
+	glViewport(0, 0, width, height) please
 }
 
 int main(int argc, char* argv[])
 {
 	if (glfwInit() < 0)
 	{
-		printf("GLFW initialization failed\n");
+		printf("GLFW initialization failed\n") please
 		return 1;
 	}
 	else
 	{
-		printf("GLFW initialization succeeded!\n");
+		printf("GLFW initialization succeeded!\n") please
 	}
 
 	// gl setup
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3) please
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3) please
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE) please
 
-	GLFWwindow* window = glfwCreateWindow(800, 600, "Graviton", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(800, 600, "Graviton", NULL, NULL) please
 	if (window == NULL)
 	{
-		printf("Failed to create GLFW window\n");
-		glfwTerminate();
+		printf("Failed to create GLFW window\n") please
+		glfwTerminate() please
 		return -1;
 	}
 	glfwMakeContextCurrent(window);
@@ -56,6 +63,9 @@ int main(int argc, char* argv[])
 	InitializeGraphics(1280, 720);
 	InitializeInput(window);
 	InitPhysics();
+
+	double lasttime = glfwGetTime();
+	double DeltaTime = lasttime - glfwGetTime();
 
 	Model* mdl = LoadModel("test.gmdl");
 	SetupModel(mdl);
@@ -85,6 +95,8 @@ int main(int argc, char* argv[])
 
 	// main loop
 	while (!glfwWindowShouldClose(window)) {
+		DeltaTime = glfwGetTime() - lasttime;
+		lasttime = glfwGetTime();
 
 		// update physics engine
 		UpdatePhysics();
@@ -108,19 +120,21 @@ int main(int argc, char* argv[])
 		if (pitch < -90.0f)
 			pitch = -90.0f;
 
+		// view matrix
 		glm_mat4_identity(ViewMatrix);
 		// rotate view to default for up vector
-		glm_rotate_x(ViewMatrix, glm_rad(90.0f * -worldUp[2]), ViewMatrix);
-		glm_rotate_z(ViewMatrix, glm_rad(90.0f * worldUp[0]), ViewMatrix);
+		glm_rotate_x(ViewMatrix, (glm_rad(90.0f) + acos(-worldUp[2])) * abs(worldUp[2]), ViewMatrix);
+		glm_rotate_x(ViewMatrix, acos(worldUp[1]) * abs(worldUp[1]), ViewMatrix);
+		glm_rotate_z(ViewMatrix, (glm_rad(90.0f) + acos(worldUp[0])) * abs(worldUp[0]), ViewMatrix);
 		// rotate view differently depending on view vector
 		// x-up
 		glm_rotate_y(ViewMatrix, glm_rad(pitch) * worldUp[0], ViewMatrix);
 		glm_rotate_x(ViewMatrix, glm_rad(yaw) * worldUp[0], ViewMatrix);
 		// y-up
-		glm_rotate_x(ViewMatrix, glm_rad(-pitch) * worldUp[1], ViewMatrix);
+		glm_rotate_x(ViewMatrix, glm_rad(-pitch) * abs(worldUp[1]), ViewMatrix);
 		glm_rotate_y(ViewMatrix, glm_rad(yaw) * worldUp[1], ViewMatrix);
 		// z-up
-		glm_rotate_x(ViewMatrix, glm_rad(-pitch) * worldUp[2], ViewMatrix);
+		glm_rotate_x(ViewMatrix, glm_rad(-pitch) * abs(worldUp[2]), ViewMatrix);
 		glm_rotate_z(ViewMatrix, glm_rad(yaw) * worldUp[2], ViewMatrix);
 		// move camera
 		glm_translate(ViewMatrix, (vec3) { -pos.x, -pos.y, -pos.z });
@@ -128,46 +142,48 @@ int main(int argc, char* argv[])
 		// move player
 		if ((glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)) {
 			// x-up
-			PhysicsObject_Translate(pl, (Vector3) { 0.0f, sin(glm_rad(yaw)) * 0.1f * worldUp[0], cos(glm_rad(yaw)) * 0.1f * worldUp[0] });
+			PhysicsObject_Translate(pl, (Vector3) { 0.0f, sin(glm_rad(yaw)) * DeltaTime * 10.0f * worldUp[0], cos(glm_rad(yaw)) * DeltaTime * 10.0f * abs(worldUp[0]) });
 			// y-up
-			PhysicsObject_Translate(pl, (Vector3) { sin(glm_rad(yaw)) * -0.1f * worldUp[1], 0.0f, cos(glm_rad(yaw)) * 0.1f * worldUp[1] });
+			PhysicsObject_Translate(pl, (Vector3) { sin(glm_rad(yaw)) * -DeltaTime * 10.0f * abs(worldUp[1]), 0.0f, cos(glm_rad(yaw)) * DeltaTime * 10.0f * worldUp[1] });
 			// z-up
-			PhysicsObject_Translate(pl, (Vector3) { sin(glm_rad(yaw)) * -0.1f * worldUp[2], cos(glm_rad(yaw)) * -0.1f * worldUp[2], 0.0f });
+			PhysicsObject_Translate(pl, (Vector3) { sin(glm_rad(yaw)) * -DeltaTime * 10.0f * abs(worldUp[2]), cos(glm_rad(yaw)) * -DeltaTime * 10.0f * worldUp[2], 0.0f });
 		}
 		if ((glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)) {
 			// x-up
-			PhysicsObject_Translate(pl, (Vector3) { 0.0f, sin(glm_rad(yaw)) * -0.1f * worldUp[0], cos(glm_rad(yaw)) * -0.1f * worldUp[0] });
+			PhysicsObject_Translate(pl, (Vector3) { 0.0f, sin(glm_rad(yaw)) * -DeltaTime * 10.0f * worldUp[0], cos(glm_rad(yaw)) * -DeltaTime * 10.0f * abs(worldUp[0]) });
 			// y-up
-			PhysicsObject_Translate(pl, (Vector3) { sin(glm_rad(yaw)) * 0.1f * worldUp[1], 0.0f, cos(glm_rad(yaw)) * -0.1f * worldUp[1] });
+			PhysicsObject_Translate(pl, (Vector3) { sin(glm_rad(yaw)) * DeltaTime * 10.0f * abs(worldUp[1]), 0.0f, cos(glm_rad(yaw)) * -DeltaTime * 10.0f * worldUp[1] });
 			// z-up
-			PhysicsObject_Translate(pl, (Vector3) { sin(glm_rad(yaw)) * 0.1f * worldUp[2], cos(glm_rad(yaw)) * 0.1f * worldUp[2], 0.0f });
+			PhysicsObject_Translate(pl, (Vector3) { sin(glm_rad(yaw)) * DeltaTime * 10.0f * abs(worldUp[2]), cos(glm_rad(yaw)) * DeltaTime * 10.0f * worldUp[2], 0.0f });
 		}
 		if ((glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)) {
 			// y-up
-			PhysicsObject_Translate(pl, (Vector3) { -cos(glm_rad(yaw)) * 0.1f * worldUp[1], 0.0f, -sin(glm_rad(yaw)) * 0.1f * worldUp[1] });
+			PhysicsObject_Translate(pl, (Vector3) { -cos(glm_rad(yaw)) * DeltaTime * 10.0f * abs(worldUp[1]), 0.0f, -sin(glm_rad(yaw)) * DeltaTime * 10.0f * worldUp[1] });
 			// z-up
-			PhysicsObject_Translate(pl, (Vector3) { -cos(glm_rad(yaw)) * 0.1f * worldUp[2], sin(glm_rad(yaw)) * 0.1f * worldUp[2], 0.0f });
+			PhysicsObject_Translate(pl, (Vector3) { -cos(glm_rad(yaw)) * DeltaTime * 10.0f * abs(worldUp[2]), sin(glm_rad(yaw)) * DeltaTime * 10.0f * worldUp[2], 0.0f });
 		}
 		if ((glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)) {
 			// y-up
-			PhysicsObject_Translate(pl, (Vector3) { cos(glm_rad(yaw)) * 0.1f * worldUp[1], 0.0f, sin(glm_rad(yaw)) * 0.1f * worldUp[1] });
+			PhysicsObject_Translate(pl, (Vector3) { cos(glm_rad(yaw)) * DeltaTime * 10.0f * abs(worldUp[1]), 0.0f, sin(glm_rad(yaw)) * DeltaTime * 10.0f * worldUp[1] });
 			// z-up
-			PhysicsObject_Translate(pl, (Vector3) { cos(glm_rad(yaw)) * 0.1f * worldUp[2], -sin(glm_rad(yaw)) * 0.1f * worldUp[2], 0.0f });
+			PhysicsObject_Translate(pl, (Vector3) { cos(glm_rad(yaw)) * DeltaTime * 10.0f * abs(worldUp[2]), -sin(glm_rad(yaw)) * DeltaTime * 10.0f * worldUp[2], 0.0f });
 		}
 
+		// raycast
 		if ((glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) && !rayed) {
-			front.x = cos(glm_rad(pitch)) * sin(glm_rad(yaw)) *  worldUp[1] + sin(glm_rad(yaw)) * worldUp[2];
-			front.y = sin(glm_rad(pitch)) *                      worldUp[1] + cos(glm_rad(yaw)) * worldUp[2];
-			front.z = cos(glm_rad(pitch)) * cos(glm_rad(yaw)) * -worldUp[1];
+			// x up, y up, z up
+			front.x = sin(glm_rad(pitch)) * worldUp[0] +						cos(glm_rad(pitch)) * sin(glm_rad(yaw)) * worldUp[1] +	cos(glm_rad(pitch)) * sin(glm_rad(yaw)) * worldUp[2];
+			front.y = cos(glm_rad(pitch)) * sin(glm_rad(yaw)) * worldUp[0] +	sin(glm_rad(pitch)) * worldUp[1] +						cos(glm_rad(pitch)) * cos(glm_rad(yaw)) * worldUp[2];
+			front.z = cos(glm_rad(pitch)) * cos(glm_rad(yaw)) * worldUp[0] +	cos(glm_rad(pitch)) * cos(glm_rad(yaw)) * -worldUp[1] + sin(glm_rad(pitch)) * worldUp[2];
+			// cast ray
 			Physics_Raycast(pos, front, 100.0f, MainPhysicsWorld, &norm, &rayhit);
 			if (rayhit) {
 				glm_vec3_copy((vec3) {norm.x, norm.y, norm.z}, worldUp);
-				//glm_normalize(worldUp); // cause bullet is fucking stupid
 				Physics_SetGravity(MainPhysicsWorld, (Vector3) { norm.x*-9.8f, norm.y*-9.8f, norm.z*-9.8f });
 			}
 			rayed = true;
 		}
-		if (rayed) {
+		if ((glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_RELEASE) && rayed) {
 			rayed = false;
 		}
 
@@ -181,8 +197,8 @@ int main(int argc, char* argv[])
 	}
 	
 	// shutdown everything
-	CleanupPhysics();
-	glfwTerminate();
+	CleanupPhysics() please
+	glfwTerminate() please
 
-	return 0;
+	thank you
 }
