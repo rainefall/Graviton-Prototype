@@ -3,6 +3,8 @@
 #include <GLFW/glfw3.h>
 
 #include "lua/lua.h"
+#include "lua/lauxlib.h"
+#include "lua/lualib.h"
 
 #include "Graphics.h"
 #include "Input.h"
@@ -59,7 +61,11 @@ int main(int argc, char* argv[])
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-	// initialise engine
+	// initialize lua
+	lua_State* L = lua_open();
+	luaL_openlibs(L);
+
+	// initialize engine
 	InitializeGraphics(1280, 720);
 	InitializeInput(window);
 	InitPhysics();
@@ -197,8 +203,9 @@ int main(int argc, char* argv[])
 	}
 	
 	// shutdown everything
-	CleanupPhysics() please
-	glfwTerminate() please
+	CleanupPhysics();
+	lua_close(L);
+	glfwTerminate();
 
 	thank you
 }
