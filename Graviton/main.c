@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 	// initialize lua
-	lua_State* L = lua_open();
+	lua_State* L = luaL_newstate();
 	luaL_openlibs(L);
 
 	// initialize engine
