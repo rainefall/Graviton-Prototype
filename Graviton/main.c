@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
 	double lasttime = glfwGetTime();
 	double DeltaTime = lasttime - glfwGetTime();
 
-	Model* mdl = LoadModel("ball.gmdl");
+	Model* mdl = LoadModel("test.gmdl");
 	SetupModel(mdl);
 
 	// physics test
@@ -181,9 +181,9 @@ int main(int argc, char* argv[])
 		// raycast
 		if ((glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) && !rayed) {
 			// x up, y up, z up
-			front.x = sin(glm_rad(pitch)) * worldUp[0] +						cos(glm_rad(pitch)) * sin(glm_rad(yaw)) * worldUp[1] +	cos(glm_rad(pitch)) * sin(glm_rad(yaw)) * worldUp[2];
-			front.y = cos(glm_rad(pitch)) * sin(glm_rad(yaw)) * worldUp[0] +	sin(glm_rad(pitch)) * worldUp[1] +						cos(glm_rad(pitch)) * cos(glm_rad(yaw)) * worldUp[2];
-			front.z = cos(glm_rad(pitch)) * cos(glm_rad(yaw)) * worldUp[0] +	cos(glm_rad(pitch)) * cos(glm_rad(yaw)) * -worldUp[1] + sin(glm_rad(pitch)) * worldUp[2];
+			front.x = sin(glm_rad(pitch)) * -worldUp[0] +						cos(glm_rad(pitch)) * sin(glm_rad(yaw)) * worldUp[1] +	cos(glm_rad(pitch)) * sin(glm_rad(yaw)) * worldUp[2];
+			front.y = cos(glm_rad(pitch)) * sin(glm_rad(yaw)) * -worldUp[0] +	sin(glm_rad(pitch)) * worldUp[1] +						cos(glm_rad(pitch)) * cos(glm_rad(yaw)) * worldUp[2];
+			front.z = cos(glm_rad(pitch)) * cos(glm_rad(yaw)) * -worldUp[0] +	cos(glm_rad(pitch)) * cos(glm_rad(yaw)) * -worldUp[1] + sin(glm_rad(pitch)) * worldUp[2];
 			// cast ray
 			Physics_Raycast(pos, front, 100.0f, MainPhysicsWorld, &norm, &rayhit);
 			if (rayhit) {
