@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
 	double lasttime = glfwGetTime();
 	double DeltaTime = lasttime - glfwGetTime();
 
-	Model* mdl = LoadModel("test.gmdl");
+	Model* mdl = LoadModel("ball.gmdl");
 	SetupModel(mdl);
 
 	// physics test
@@ -125,6 +125,9 @@ int main(int argc, char* argv[])
 			pitch = 90.0f;
 		if (pitch < -90.0f)
 			pitch = -90.0f;
+
+		// dear god help me
+		// this code hurts my brain to look at
 
 		// view matrix
 		glm_mat4_identity(ViewMatrix);
